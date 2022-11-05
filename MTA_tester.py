@@ -6,6 +6,83 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import Encoders
 
+EMAIL_HEADERS = [
+"From",
+"To",
+"Date",
+"Subject",
+"Body",
+"Accept-Language",
+"Alternate-Recipient",
+"Autoforwarded",
+"Autosubmitted",
+"Bcc",
+"Cc",
+"Comments",
+"Content-Identifier",
+"Content-Return",
+"Conversion",
+"Conversion-With-Loss",
+"DL-Expansion-History",
+"Deferred-Delivery",
+"Delivery-Date",
+"Discarded-X400-IPMS-Extensions",
+"Discarded-X400-MTS-Extensions",
+"Disclose-Recipients",
+"Disposition-Notification-Options",
+"Disposition-Notification-To",
+"Encoding",
+"Encrypted",
+"Expires",
+"Expiry-Date",
+"Generate-Delivery-Report",
+"Importance",
+"In-Reply-To",
+"Incomplete-Copy",
+"Keywords",
+"Language",
+"Latest-Delivery-Time",
+"List-Archive",
+"List-Help",
+"List-ID",
+"List-Owner",
+"List-Post",
+"List-Subscribe",
+"List-Unsubscribe",
+"Message-Context",
+"Message-ID",
+"Message-Type",
+"Obsoletes",
+"Original-Encoded-Information-Types",
+"Original-Message-ID",
+"Originator-Return-Address",
+"PICS-Label",
+"Prevent-NonDelivery-Report",
+"Priority",
+"Received",
+"References",
+"Reply-By",
+"Reply-To",
+"Resent-Bcc",
+"Resent-Cc",
+"Resent-Date",
+"Resent-From",
+"Resent-Message-ID",
+"Resent-Reply-To",
+"Resent-Sender",
+"Resent-To",
+"Return-Path",
+"Sender",
+"Sensitivity",
+"Supersedes",
+"X400-Content-Identifier",
+"X400-Content-Return",
+"X400-Content-Type",
+"X400-MTS-Identifier",
+"X400-Originator",
+"X400-Received",
+"X400-Recipients",
+"X400-Trace"]
 
 ### OPTIONS ---
 full_cmd_arguments = sys.argv
@@ -17,6 +94,18 @@ try:
 except getopt.error as err:
         sys.exit(2)
 ### --- (They will be iterated at the bottom of the screen ---
+
+def inject_in_all_headers(me,you,payload,smtp_server):
+    '''Injecting the given payload in the all email headers fields at once.'''
+    msg = MIMEMultipart()
+    msg['From'] = me
+    msg['To'] = you
+    for h in EMAIL_HEADERS[2:]:
+        msg[h] = '%s' % payload
+
+    s = smtplib.SMTP(smtp_server)
+    s.sendmail(me, [you], msg.as_string())
+    s.quit()
 
 def inject_subject(me,you,payload,smtp_server):
     msg = MIMEMultipart()
@@ -100,5 +189,8 @@ for current_argument, current_value in arguments:
             for payload in payloads_array:
                 print(payload)
                 inject_filename(me,you,payload,smtp_server)
-
+        elif current_value == "all":
+            for payload in payloads_array:
+                print(payload)
+                inject_in_all_headers(me,you,payload,smtp_server)
 
